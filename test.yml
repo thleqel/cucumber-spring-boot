@@ -1,0 +1,40 @@
+name: Daily Regression Test
+
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+jobs:
+  regression-test:
+    uses: ./.github/workflows/shared-test.yml
+    with:
+      java-version: '20'
+
+  upload-results:
+    runs-on: ubuntu-latest
+    needs: regression-test
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download cucumber reports
+      uses: actions/download-artifact@v4
+      with:
+        name: cucumber-reports
+
+    - name: Set CUCUMBER_REPORTS_PATH environment variable
+      run: echo "CUCUMBER_REPORTS_PATH=$(pwd)/cucumber-report.json" >> $GITHUB_ENV
+
+    - name: Upload test results to Zephyr
+      run: ./scripts/main.sh
+      env:
+        ZEPHYR_API_KEY: ${{ secrets.ZEPHYR_API_KEY }}
+        ZEPHYR_PROJECT_ID: ${{ secrets.ZEPHYR_PROJECT_ID }}
+        API_TOKEN: ${{ secrets.API_TOKEN }}
+        FOLDER_ID: ${{ secrets.FOLDER_ID }}
+        TEST_CYCLE_PREFIX: ${{ secrets.TEST_CYCLE_PREFIX }}
+        PROJECT_KEY: ${{ secrets.PROJECT_KEY }}
+        BASE_URL: ${{ secrets.BASE_URL }}
+        ENV: ${{ secrets.ENV }}

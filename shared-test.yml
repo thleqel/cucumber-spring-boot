@@ -1,0 +1,38 @@
+name: Reusable Regression Test
+
+on:
+  workflow_call:
+    inputs:
+      java-version:
+        required: true
+        type: string
+
+jobs:
+  regression-test:
+    runs-on: ubuntu-latest
+    
+    env:
+      CUCUMBER_REPORTS_DIR: cucumber-reports
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ inputs.java-version }}
+        distribution: 'adopt'
+        cache: 'maven'
+
+    - name: Run regression tests
+      run: mvn clean test
+
+    - name: Create cucumber reports directory and copy reports
+      run: mkdir $CUCUMBER_REPORTS_DIR && cp ./target/cucumber-report.json $CUCUMBER_REPORTS_DIR
+
+    - name: Upload cucumber reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: cucumber-reports
+        path: ${{ env.CUCUMBER_REPORTS_DIR }}

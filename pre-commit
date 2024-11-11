@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -o errexit  # Fail when a command fails
+set -o nounset  # Fail when undefined environment variables are used
+set -o pipefail # Fail when any command in a pipe sequence fails (default is last only)
+
+echo "Running pre-commit hook" # Inside pre-commit
+
+# Run lint checks
+mvn checkstyle:check
+if [ $? -ne 0 ]; then
+  echo "Lint check failed. Please fix the issues."
+  exit 1
+fi
+
+# Run formatting checks
+mvn spotless:check
+if [ $? -ne 0 ]; then
+  echo "Code formatting failed. Please fix the issues."
+  exit 1
+fi

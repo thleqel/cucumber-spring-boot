@@ -1,0 +1,25 @@
+name: Pull Request Regression Test
+
+on:
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  style-check:
+    runs-on: ubuntu-latest
+    needs: regression-test
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run checkstyle
+      run: mvn checkstyle:check
+
+    - name: Run formarting check
+      run: mvn spotless:check
+  regression-test:
+    uses: ./.github/workflows/shared-test.yml
+    with:
+      java-version: '20'
